@@ -1,0 +1,24 @@
+{
+  "name": "api",
+  "type": "module",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [],
+    "author": "",
+    "license": "ISC",
+"repository": {
+    "type": "git",
+    "url": "git+https://github.com/ReginaaMV/TC2005B.504-Web-API.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ReginaaMV/TC2005B.504-Web-API/issues"
+  },
+  "homepage": "https://github.com/ReginaaMV/TC2005B.504-Web-API#readme",
+  "dependencies": {
+    "express": "^5.1.0"
+    },
+    "description": ""
+}
