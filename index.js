@@ -1,10 +1,14 @@
+import "dotenv/config.js";
 import express from "express";
-import indexRoutes from "./routes/index.js";
-
+import indexRoutes from "./routes/index.routesjs";
+import usersRoutes from "./routes/index.js";
 
 
 const app=express();
 
+app.use(express.json());
+app.use(indexRoutes)
+app.use(usersRoutes);
 // app.get("/", (req,res)=> res.send("Hola desde la Api 2"));
 // app.get("/ping",(req,res)=>res.send("PONG!"));
 // app.get("/marco", (req,res)=>res.send("POLO!"));

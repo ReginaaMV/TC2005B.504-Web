@@ -7,9 +7,9 @@
     "start": "node index.js"
   },
   "keywords": [],
-    "author": "",
-    "license": "ISC",
-"repository": {
+  "author": "",
+  "license": "ISC",
+  "repository": {
     "type": "git",
     "url": "git+https://github.com/ReginaaMV/TC2005B.504-Web-API.git"
   },
@@ -18,7 +18,8 @@
   },
   "homepage": "https://github.com/ReginaaMV/TC2005B.504-Web-API#readme",
   "dependencies": {
-    "express": "^5.1.0"
-    },
-    "description": ""
+    "express": "^5.1.0",
+    "mysql2": "^3.14.0"
+  },
+  "description": ""
 }
