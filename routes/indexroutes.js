@@ -1,5 +1,5 @@
-import {Routes} from "express";    
-import { saludo, ping, marco, abc } from "../controllers/index.controller.js";
+import {Router} from "express";    
+import { saludo, ping, marco, abc } from "../controllers/indexcontrollers.js";
 
 
 

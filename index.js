@@ -1,7 +1,7 @@
 import "dotenv/config.js";
 import express from "express";
-import indexRoutes from "./routes/index.routesjs";
-import usersRoutes from "./routes/index.js";
+import indexRoutes from "./routes/indexroutes.js";
+import usersRoutes from "./routes/users.routes.js";
 
 
 const app=express();
@@ -14,5 +14,5 @@ app.use(usersRoutes);
 // app.get("/marco", (req,res)=>res.send("POLO!"));
 // app.get("/a/b/c",(req,res)=>res.send("ABC!"));
 
-const port=5000;
+const port=5008;
 app.listen(port, console.log("http://localhost:"+port));

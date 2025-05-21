@@ -18,6 +18,8 @@
   },
   "homepage": "https://github.com/ReginaaMV/TC2005B.504-Web-API#readme",
   "dependencies": {
+    "crypto": "^1.0.1",
+    "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "mysql2": "^3.14.0"
   },

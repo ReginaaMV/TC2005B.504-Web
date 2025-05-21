@@ -1,109 +1,122 @@
 import { pool } from "../db/db.js";
+import { getSalt, hashPassword } from "../utils/hash.js";
+import { createHash } from "crypto";
+import dotenv from 'dotenv';
+dotenv.config();
 
-// Obtener todos los usuarios
+// GET /users — Muestra todos los usuarios con la contraseña hasheada
 export const getUsers = (req, res) => {
-    pool.query("SELECT * FROM users", (error, results) => {
+    pool.query('SELECT * FROM users', (error, results) => {
         if (error) {
-            res.status(500).json({ msg: error.message, users: [] });
+            res.status(500).json({ msg: error, users: [] });
             return;
         }
-        res.status(200).json({ msg: "ok", users: results });
+
+        const hashedUsers = results.map(user => {
+            const password = user.password || "";
+            const hash = createHash("sha256").update(password).digest("hex");
+
+            return {
+                ...user,
+                password: hash
+            };
+        });
+
+        res.status(200).json({ msg: "OK", users: hashedUsers });
     });
 };
 
-// Obtener un usuario por ID
+// GET /users/:id — Obtiene un usuario por ID
 export const getUser = (req, res) => {
     const id = req.params.id;
-    pool.execute("SELECT * FROM users WHERE id = ?", [id], (error, results) => {
+    pool.execute('SELECT * FROM users WHERE id = ?', [id], (error, results) => {
         if (error) {
-            res.status(500).json({ msg: error.message, users: [] });
+            res.status(500).json({ msg: error, users: [] });
             return;
         }
-        res.status(200).json({ msg: "ok", users: results });
+        res.status(200).json({ msg: "OK", user: results });
     });
 };
 
-// Crear un nuevo usuario
+// POST /users — Crea un nuevo usuario y guarda contraseña con salt + hash
 export const postUser = (req, res) => {
-    const { username, password } = req.body;
-    if (!username || !password) {
-        res.status(400).json({ msg: "Username and password are required" });
-        return;
-    }
-    pool.execute(
-        "INSERT INTO users (username, password) VALUES (?, ?)",
-        [username, password],
+    const { name, username, password, age } = req.body;
+    const salt = getSalt();
+    const hash = hashPassword(password, salt);
+    const hashedPassword = salt + hash;
+
+    pool.query(
+        "INSERT INTO users (name, username, password, age) VALUES (?, ?, ?, ?)",
+        [name, username, hashedPassword, age],
         (error, results) => {
             if (error) {
-                res.status(500).json({ msg: error.message });
+                res.status(500).json({ msg: error });
                 return;
             }
-            res.status(201).json({ msg: "User created", userId: results.insertId });
+            res.status(201).json({ msg: "Usuario creado" });
         }
     );
 };
 
-// Actualizar un usuario
+// PUT /users/:id — Actualiza un usuario con nueva contraseña (salt + hash)
 export const putUser = (req, res) => {
-    const { name, username, password } = req.body;
-    const id = req.params.id;
-    if (!id || !name || !username || !password) {
-        res.status(400).json({ msg: "All fields are required" });
-        return;
-    }
+    const { name, username, password, age } = req.body;
+    const salt = getSalt();
+    const hash = hashPassword(password, salt);
+    const hashedPassword = salt + hash;
+
     pool.execute(
-        "UPDATE users SET name = ?, username = ?, password = ? WHERE id = ?",
-        [name, username, password, id],
+        'UPDATE users SET name = ?, username = ?, password = ?, age = ? WHERE id = ?',
+        [name, username, hashedPassword, age, req.params.id],
         (error, results) => {
             if (error) {
-                res.status(500).json({ msg: error.message });
+                res.status(500).json({ msg: error, users: [] });
                 return;
             }
-            res.status(200).json({ msg: "User updated", affectedRows: results.affectedRows });
+            res.status(200).json({ msg: "OK", user: results });
         }
     );
 };
 
-// Eliminar un usuario
+// DELETE /users/:id — Elimina un usuario
 export const deleteUser = (req, res) => {
-    const id = req.params.id;
-    if (!id) {
-        res.status(400).json({ msg: "User ID is required" });
-        return;
-    }
     pool.execute(
-        "DELETE FROM users WHERE id = ?",
-        [id],
+        'DELETE FROM users WHERE id = ?',
+        [req.params.id],
         (error, results) => {
             if (error) {
-                res.status(500).json({ msg: error.message });
+                res.status(500).json({ msg: error, users: [] });
                 return;
             }
-            res.status(200).json({ msg: "User deleted", affectedRows: results.affectedRows });
+            res.status(200).json({ msg: "OK", user: results });
         }
     );
 };
 
-// Login de usuario
+// POST /login — Verifica login comparando el hash generado con el guardado
 export const login = (req, res) => {
     const { username, password } = req.body;
-    if (!username || !password) {
-        res.status(400).json({ msg: "Username and password are required" });
-        return;
-    }
-    pool.execute(
-        "SELECT * FROM users WHERE username = ? AND password = ?",
-        [username, password],
+    pool.query(
+        "SELECT * FROM users WHERE username = ?",
+        [username],
         (error, results) => {
-            if (error) {
-                res.status(500).json({ msg: error.message });
+            if (error || results.length === 0) {
+                res.status(401).json({ msg: "Credenciales incorrectas" });
                 return;
             }
-            if (results.length === 0) {
-                res.status(401).json({ msg: "Invalid credentials" });
-                return;
+
+            const user = results[0];
+            const stored = user.password;
+            const saltSize = parseInt(process.env.SALT_SIZE) || 10;
+            const salt = stored.substring(0, saltSize);
+            const hash = stored.substring(saltSize);
+            const hashAttempt = hashPassword(password, salt);
+
+            if (hash === hashAttempt) {
+                res.status(200).json({ msg: "Login exitoso" });
+            } else {
+                res.status(401).json({ msg: "Credenciales incorrectas" });
             }
-            res.status(200).json({ msg: "Login successful", user: results[0] });
         }
     );
 };
